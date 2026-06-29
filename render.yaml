@@ -2,14 +2,12 @@ services:
   - type: web
     name: privacyshield
     runtime: docker
-    plan: starter
+    plan: free
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
-      - key: AUTH_URL
-        value: https://privacyshield.onrender.com
       - key: NEXT_PUBLIC_APP_URL
         fromService:
           name: privacyshield
@@ -28,28 +26,6 @@ services:
         generateValue: true
       - key: ENCRYPTION_KEY
         generateValue: true
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: STRIPE_PUBLISHABLE_KEY
-        sync: false
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false
-      - key: STRIPE_STANDARD_MONTHLY_PRICE_ID
-        sync: false
-      - key: STRIPE_STANDARD_ANNUAL_PRICE_ID
-        sync: false
-      - key: STRIPE_UNLIMITED_MONTHLY_PRICE_ID
-        sync: false
-      - key: STRIPE_UNLIMITED_ANNUAL_PRICE_ID
-        sync: false
-      - key: STRIPE_FAMILY_MONTHLY_PRICE_ID
-        sync: false
-      - key: STRIPE_FAMILY_ANNUAL_PRICE_ID
-        sync: false
-      - key: STRIPE_FAMILY_UNLIMITED_MONTHLY_PRICE_ID
-        sync: false
-      - key: STRIPE_FAMILY_UNLIMITED_ANNUAL_PRICE_ID
-        sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
@@ -68,52 +44,9 @@ services:
       - source: 0.0.0.0/0
         description: allow-all
 
-  - type: worker
-    name: privacyshield-worker
-    runtime: docker
-    plan: starter
-    dockerfilePath: ./Dockerfile
-    dockerCommand: npx tsx broker-engine/src/worker.ts
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: privacyshield-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: privacyshield-redis
-          property: connectionString
-      - key: AUTH_SECRET
-        fromService:
-          name: privacyshield
-          type: web
-          envVarKey: AUTH_SECRET
-      - key: ENCRYPTION_KEY
-        fromService:
-          name: privacyshield
-          type: web
-          envVarKey: ENCRYPTION_KEY
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: CAPTCHA_API_KEY
-        sync: false
-      - key: PROXY_SMARTPROXY_USER
-        sync: false
-      - key: PROXY_SMARTPROXY_PASS
-        sync: false
-
 databases:
   - name: privacyshield-db
-    plan: basic-256mb
+    plan: free
     databaseName: privacyshield
     ipAllowList:
       - source: 0.0.0.0/0

@@ -116,9 +116,9 @@ export default function PricingPage() {
                   )}
                 </div>
 
-                <Link href="/checkout" className="block mb-4">
+                <Link href="/signup" className="block mb-4">
                   <Button variant={plan.recommended ? "primary" : "outline"} className="w-full">
-                    Get {plan.name}
+                    Get Started Free
                   </Button>
                 </Link>
 
@@ -196,9 +196,9 @@ export default function PricingPage() {
                 If we don&apos;t meet your expectations, contact our 24/7 Customer Support Team
                 within 30 days of signing up, and we&apos;ll refund the full amount paid.
               </p>
-              <Link href="/checkout">
+              <Link href="/signup">
                 <Button variant="secondary" size="lg" className="bg-white text-emerald-800 hover:bg-emerald-50">
-                  Get Incogni now <ArrowRight className="ml-2 w-4 h-4" />
+                  Get Started Free <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
             </div>

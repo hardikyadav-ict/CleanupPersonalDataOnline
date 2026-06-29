@@ -1,89 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, CreditCard, Bell, Shield, LogOut } from "lucide-react";
+import { CreditCard, Bell, Shield, LogOut, CheckCircle2 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 export default function SettingsPage() {
-  const [subscription, setSubscription] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/user/subscription");
-        if (res.ok) {
-          setSubscription(await res.json());
-        }
-      } catch (e) {
-        console.error(e);
-      }
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 animate-spin text-emerald-600" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your account and subscription</p>
+        <p className="text-gray-500 mt-1">Manage your account</p>
       </div>
 
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <CreditCard className="w-6 h-6 text-emerald-600" />
-            <h2 className="text-lg font-bold text-gray-900">Subscription</h2>
+            <h2 className="text-lg font-bold text-gray-900">Plan</h2>
           </div>
-
-          {subscription ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">
-                    {subscription.planId?.replace(/_/g, " ") || "Standard Plan"}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {subscription.status}
-                    {subscription.currentPeriodEnd &&
-                      ` · Renews ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`}
-                  </p>
-                </div>
-                <Badge
-                  variant={
-                    subscription.status === "ACTIVE" ? "success" : "default"
-                  }
-                >
-                  {subscription.status}
-                </Badge>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" size="sm">
-                  Change Plan
-                </Button>
-                <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                  Cancel Subscription
-                </Button>
+          <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-lg">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium text-gray-900">Free Plan</p>
+                <p className="text-sm text-gray-500">
+                  All features included · No payment required
+                </p>
               </div>
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500 mb-4">No active subscription</p>
-              <Button variant="primary">Choose a Plan</Button>
-            </div>
-          )}
+            <Badge variant="success">Active</Badge>
+          </div>
         </CardContent>
       </Card>
 
@@ -128,7 +75,7 @@ export default function SettingsPage() {
                 <p className="text-sm font-medium text-gray-900">Two-factor authentication</p>
                 <p className="text-xs text-gray-500">Add an extra layer of security</p>
               </div>
-              <Button variant="outline" size="sm">Enable</Button>
+              <button className="px-4 py-2 text-sm font-medium text-emerald-600 border border-emerald-200 rounded-lg hover:bg-emerald-50">Enable</button>
             </div>
             <hr className="border-gray-100" />
             <button

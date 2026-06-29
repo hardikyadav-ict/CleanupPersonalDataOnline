@@ -12,5 +12,19 @@ export async function GET() {
     where: { userId: session.user.id },
   });
 
-  return NextResponse.json(subscription);
+  const freePlan = {
+    id: "free",
+    userId: session.user.id,
+    planId: "FREE",
+    status: "ACTIVE",
+    currentPeriodStart: new Date(),
+    currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    cancelAtPeriodEnd: false,
+    stripeSubscriptionId: null,
+    stripeCustomerId: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  return NextResponse.json(subscription || freePlan);
 }

@@ -270,16 +270,12 @@ export default function DashboardPage() {
             <h2 className="text-lg font-bold text-gray-900 mb-4">Your Plan</h2>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="font-semibold text-gray-900">Standard Plan</p>
-                <p className="text-sm text-gray-500">Active</p>
+                <p className="font-semibold text-gray-900">Free Plan</p>
+                <p className="text-sm text-gray-500">All features included</p>
               </div>
               <Badge variant="success">Active</Badge>
             </div>
-            <Link href="/dashboard/settings">
-              <Button variant="ghost" size="sm">
-                Manage subscription <ArrowRight className="ml-1 w-4 h-4" />
-              </Button>
-            </Link>
+            <p className="text-xs text-gray-400">No payment required</p>
           </CardContent>
         </Card>
       </div>
