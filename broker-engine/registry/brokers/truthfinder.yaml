@@ -1,0 +1,79 @@
+metadata:
+  id: "truthfinder"
+  name: "TruthFinder"
+  website: "https://www.truthfinder.com"
+  type: "public"
+  jurisdiction: "US"
+  category: "people_search"
+  active: true
+
+legal:
+  law_basis: "CCPA"
+  response_deadline_days: 45
+  suppression_renewal_days: 90
+  identity_verification: "email"
+
+removal:
+  method: "form"
+  entry_url: "https://www.truthfinder.com/optout"
+  requires_captcha: true
+  captcha_type: "recaptcha_v2"
+  requires_account: false
+  steps:
+    - id: "navigate"
+      action: "goto"
+      url: "https://www.truthfinder.com/optout"
+      wait_until: "networkidle"
+      timeout_ms: 30000
+    - id: "enter_email"
+      action: "fill"
+      selector: "#email"
+      value_ref: "{{user.email}}"
+    - id: "enter_first_name"
+      action: "fill"
+      selector: "#first_name"
+      value_ref: "{{user.firstName}}"
+    - id: "enter_last_name"
+      action: "fill"
+      selector: "#last_name"
+      value_ref: "{{user.lastName}}"
+    - id: "solve_captcha"
+      action: "captcha"
+      site_key_selector: "[data-sitekey]"
+      captcha_type: "recaptcha_v2"
+    - id: "submit"
+      action: "click"
+      selector: "button[type='submit']"
+      wait_for_navigation: true
+      screenshot_on_submit: true
+  confirmation:
+    type: "email"
+    expected_subject_regex: "TruthFinder Opt-Out|removal request"
+    expected_sender_regex: "@truthfinder\\.com"
+    token_extraction:
+      method: "llm_parse"
+      regex: "https://[^/]+/optout/confirm/([a-zA-Z0-9_\\-\\.]+)"
+    on_page_indicators:
+      - "Your request has been submitted"
+  error_detection:
+    retryable_selectors:
+      - "text=Please try again later"
+    non_retryable_selectors: []
+    max_retries: 3
+    retry_backoff_ms: [1000, 5000, 30000]
+
+rate_limiting:
+  max_requests_per_hour: 10
+  min_delay_between_requests_ms: 60000
+  cooldown_after_failure_minutes: 120
+
+proxy:
+  required: true
+  preferred_country: "US"
+  sticky_session: true
+  avoid_datacenter: true
+
+schedule:
+  initial_removal: "immediate"
+  recurring_interval_days: 90
+  recurring_jitter_minutes: 1440

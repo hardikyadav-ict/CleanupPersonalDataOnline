@@ -1,0 +1,276 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum BrokerType {
+  PUBLIC
+  PRIVATE
+}
+
+enum RemovalMethod {
+  FORM
+  EMAIL
+  API
+  POSTAL
+}
+
+enum RemovalStatus {
+  PENDING
+  SCANNING
+  IN_PROGRESS
+  REMOVED
+  CONFIRMED
+  UNCONFIRMED
+  FAILED
+  RESUBMITTED
+  NOT_FOUND
+}
+
+enum ScanType {
+  PEOPLE_SEARCH
+  DATA_BROKER
+}
+
+enum ScanStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  EXPIRED
+  TRIALING
+}
+
+enum PlanId {
+  STANDARD_MONTHLY
+  STANDARD_ANNUAL
+  UNLIMITED_MONTHLY
+  UNLIMITED_ANNUAL
+  FAMILY_MONTHLY
+  FAMILY_ANNUAL
+  FAMILY_UNLIMITED_MONTHLY
+  FAMILY_UNLIMITED_ANNUAL
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String?
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(USER)
+
+  subscription   Subscription?
+  profile        Profile?
+  addresses      Address[]
+  phoneNumbers   PhoneNumber[]
+  brokerStatuses BrokerStatus[]
+  removalRequests RemovalRequest[]
+  scans          Scan[]
+  removalReports RemovalReport[]
+  accounts       Account[]
+  sessions       Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  firstName       String?
+  lastName        String?
+  dateOfBirth     DateTime?
+  ssnLast4Enc     String?
+  signatureEnc    String?
+  authFormSigned  Boolean   @default(false)
+  authFormSignedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Address {
+  id       String @id @default(cuid())
+  userId   String
+  label    String?
+  street   String
+  city     String
+  state    String
+  zipCode  String
+  country  String @default("US")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PhoneNumber {
+  id     String @id @default(cuid())
+  userId String
+  number String
+  type   String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DataBroker {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  name          String        @unique
+  website       String
+  type          BrokerType
+  jurisdiction  String?
+  removalMethod RemovalMethod
+  optOutUrl     String?
+  isActive      Boolean       @default(true)
+  averageDays   Int?
+  schemaYaml    String?
+  captchaType   String?
+  requiresAccount Boolean     @default(false)
+  recurrenceDays Int          @default(90)
+
+  statuses      BrokerStatus[]
+  removalRequests RemovalRequest[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model BrokerStatus {
+  id          String        @id @default(cuid())
+  userId      String
+  brokerId    String
+  status      RemovalStatus @default(PENDING)
+  lastChecked DateTime?
+  lastRemoved DateTime?
+  nextRemoval DateTime?
+  notes       String?
+
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  broker DataBroker @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, brokerId])
+}
+
+model RemovalRequest {
+  id              String        @id @default(cuid())
+  userId          String
+  brokerId        String
+  status          RemovalStatus @default(PENDING)
+  requestType     String        @default("INITIAL")
+  requestedAt     DateTime      @default(now())
+  completedAt     DateTime?
+  confirmedAt     DateTime?
+  confirmationTokenEnc String?
+  responseData    Json?
+  errorMessage    String?
+  screenshotPath  String?
+
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  broker DataBroker @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+}
+
+model Scan {
+  id          String     @id @default(cuid())
+  userId      String
+  type        ScanType
+  status      ScanStatus @default(QUEUED)
+  startedAt   DateTime   @default(now())
+  completedAt DateTime?
+  results     Json?
+  reportPath  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  planId               PlanId
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId String?            @unique
+  stripeCustomerId     String?            @unique
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  trialEnd             DateTime?
+  couponCode           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Coupon {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  discountPct  Int
+  maxUses      Int?
+  usedCount    Int      @default(0)
+  expiresAt    DateTime?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model RemovalReport {
+  id        String   @id @default(cuid())
+  userId    String
+  periodStart DateTime
+  periodEnd   DateTime
+  brokersFound    Int      @default(0)
+  brokersRemoved  Int      @default(0)
+  brokersInProgress Int   @default(0)
+  totalRequests   Int      @default(0)
+  reportData      Json?
+  generatedAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

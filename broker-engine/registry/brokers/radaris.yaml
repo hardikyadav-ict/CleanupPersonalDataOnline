@@ -1,0 +1,86 @@
+metadata:
+  id: "radaris"
+  name: "Radaris"
+  website: "https://www.radaris.com"
+  type: "public"
+  jurisdiction: "US"
+  category: "people_search"
+  active: true
+
+legal:
+  law_basis: "CCPA"
+  response_deadline_days: 45
+  suppression_renewal_days: 90
+  identity_verification: "email"
+
+removal:
+  method: "form"
+  entry_url: "https://www.radaris.com/page/optout"
+  requires_captcha: false
+  requires_account: false
+  steps:
+    - id: "navigate"
+      action: "goto"
+      url: "https://www.radaris.com/page/optout"
+      wait_until: "networkidle"
+      timeout_ms: 30000
+    - id: "enter_email"
+      action: "fill"
+      selector: "input[name='email']"
+      value_ref: "{{user.email}}"
+    - id: "enter_first_name"
+      action: "fill"
+      selector: "input[name='first_name']"
+      value_ref: "{{user.firstName}}"
+    - id: "enter_last_name"
+      action: "fill"
+      selector: "input[name='last_name']"
+      value_ref: "{{user.lastName}}"
+    - id: "enter_address"
+      action: "fill"
+      selector: "input[name='address']"
+      value_ref: "{{user.addresses.0.street}}"
+    - id: "enter_city"
+      action: "fill"
+      selector: "input[name='city']"
+      value_ref: "{{user.addresses.0.city}}"
+    - id: "select_state"
+      action: "select_option"
+      selector: "select[name='state']"
+      value_ref: "{{user.addresses.0.state}}"
+    - id: "enter_zip"
+      action: "fill"
+      selector: "input[name='zip']"
+      value_ref: "{{user.addresses.0.zipCode}}"
+    - id: "submit"
+      action: "click"
+      selector: "button[type='submit']"
+      wait_for_navigation: true
+      screenshot_on_submit: true
+  confirmation:
+    type: "on_page"
+    on_page_indicators:
+      - "Your information has been removed"
+      - "opt-out request submitted"
+  error_detection:
+    retryable_selectors:
+      - "text=Please try again"
+    non_retryable_selectors: []
+    max_retries: 3
+    retry_backoff_ms: [2000, 10000, 60000]
+
+rate_limiting:
+  max_requests_per_hour: 20
+  min_delay_between_requests_ms: 30000
+  cooldown_after_failure_minutes: 60
+
+proxy:
+  required: true
+  preferred_country: "US"
+  sticky_session: true
+  avoid_datacenter: true
+
+schedule:
+  initial_removal: "immediate"
+  recurring_interval_days: 90
+  recurring_jitter_minutes: 1440
